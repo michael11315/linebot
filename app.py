@@ -1,7 +1,8 @@
 import os
-import time
-import pygsheets
-from flask import Flask, request, abort
+import traceback
+from flask import Flask, request, abort, render_template
+from apscheduler.schedulers.background import BackgroundScheduler
+from urllib import request as rq
 from linebot import (
 	LineBotApi, WebhookHandler
 )
@@ -10,7 +11,12 @@ from linebot.exceptions import (
 )
 from linebot.models import *
 
+import xun_op
+import xun_ptt_notify
+
 app = Flask(__name__)
+sched = BackgroundScheduler()
+xun_ptt_notify = xun_ptt_notify.xun_ptt_notify()
 
 # Channel Access Token
 line_bot_api = LineBotApi(os.environ['LINE_BOT_CHANNEL_TOKEN'])
@@ -35,40 +41,30 @@ def callback():
 # 處理訊息
 @handler.add(MessageEvent, message=TextMessage)
 def handle_message(event):
-	if event.message.text.startswith('r') and len(event.message.text.split(' ', 1)) > 1:
-		return_msg = ''
-		try:
-			gc = pygsheets.authorize(service_account_env_var='GC_EXCEL_JSON', seconds_per_quota=5)
-			sht = gc.open_by_key('1E_Uvh4XTb3CWJ5HRqpxO5wdxRZtpAaLJNw61PDTr7dE')
-			wks = sht.worksheet('title', 'linebot_record')
-			wks.add_rows(1)
-			row_index = wks.rows
-			cell = wks.cell('A%d' % row_index)
-			cell.value = time.strftime('%Y/%m/%d %H:%M:%S', time.gmtime(time.time()+28800))
-			cell = wks.cell('B%d' % row_index)
-			cell.value = event.message.text.split(' ', 1)[1]
-			return_msg = 'record finish'
-		except:
-			return_msg = 'record fail'
-		
-		message = TextSendMessage(text=return_msg)
-		line_bot_api.reply_message(event.reply_token, message)
-	
-	elif event.message.text == '1':
-		url = 'https://lh3.googleusercontent.com/pw/AM-JKLXPomWdRHk4fxt5KWQzOlUfpRixNi4m4rDOK0so0XQsuK6gRTNFuQELYO_9wtTcoe2T1F8Jgcw4nfLDrxsmXt2EhQpg84Y-v3WEUuzi3kmh_WZ5hjzu3DRqFmoBD9X4Dy7uIn80vnkLvTlRuhRXTbpO=w613-h817-no'
-		image_message = ImageSendMessage(
-			original_content_url=url,
-			preview_image_url=url
-		)
-		line_bot_api.reply_message(event.reply_token, image_message)
-	
-	else:
-		message = TextSendMessage(text=event.message.text)
-		line_bot_api.reply_message(event.reply_token, message)
+	print('source = ', str(event.source))
+	f, cmd_list = xun_op.cmd_parser(event.message.text)
+	if f:
+		paraList = {}
+		paraList['line_bot_api'] = line_bot_api
+		paraList['cmd_list'] = cmd_list
+		paraList['event'] = event
+		paraList['xun_ptt_notify'] = xun_ptt_notify
+		f(paraList)
 
 @app.route('/')
 def index():
-	return 'Hello World'
+	return render_template('index.html')
+
+# 定時 trigger 自己
+@sched.scheduled_job('cron', minute='*/10')
+def scheduled_job():
+	url = os.environ['LINE_BOT_INDEX_URL']
+	conn = rq.urlopen(url)
+	
+	for key, value in conn.getheaders():
+		print(key, value)
+
+sched.start()
 
 if __name__ == "__main__":
 	port = int(os.environ.get('PORT', 5000))

@@ -2,3 +2,5 @@ line-bot-sdk
 flask
 requests
 pygsheets
+APScheduler
+psycopg2
