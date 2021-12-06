@@ -9,7 +9,7 @@ from tool import TracebackLoggingThread
 op_cmd = {
 	'記帳': 'record',
 	'提醒': 'remind',
-	'ID': 'getid',
+	# 'ID': 'getid',
 	'照片': 'picture',
 	'幫助': 'help',
 	'測試照片': 'test_picture',
