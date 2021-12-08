@@ -55,9 +55,9 @@ def func_record(paraList):
 	def date_format(s):
 		try:
 			with_year = True
-			if s.count('/') == '1':
+			if s.count('/') == 1:
 				with_year = False
-			elif s.count('/') != '2':
+			elif s.count('/') != 2:
 				return False, ''
 			
 			date = s.split('/')
@@ -65,18 +65,21 @@ def func_record(paraList):
 				y = int(date[0])
 				if y < 2020 or y > 2030:
 					return False, ''
-				
-				m = int(date[1])
-				if m < 1 or m > 12:
-					return False, ''
-				
-				d = int(date[2])
-				if d < 1 or d > 31:
-					return False, ''
+			else:
+				y = int(time.strftime('%Y', time.localtime()))
+			
+			m = int(date[-2])
+			if m < 1 or m > 12:
+				return False, ''
+			
+			d = int(date[-1])
+			if d < 1 or d > 31:
+				return False, ''
 			
 			return True, '%d/%d/%d' % (y, m, d)
 		except:
-			return False, ''
+			#print (traceback.format_exc())
+			return False, time.strftime('%Y/%m/%d', time.localtime())
 	
 	try:
 		return_msg = ''
@@ -100,10 +103,7 @@ def func_record(paraList):
 			# date
 			cell = wks.cell('A%d' % row_index)
 			ret = date_format(cmd_list[-1])
-			if ret[0]:
-				cell.value = ret[1]
-			else:
-				cell.value = time.strftime('%Y/%m/%d', time.gmtime(time.time()+28800))
+			cell.value = ret[1]
 			
 			# dollar
 			cell = wks.cell('B%d' % row_index)
