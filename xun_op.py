@@ -58,23 +58,23 @@ def func_record(paraList):
 			if s.count('/') == 1:
 				with_year = False
 			elif s.count('/') != 2:
-				return False, ''
+				raise
 			
 			date = s.split('/')
 			if with_year:
 				y = int(date[0])
 				if y < 2020 or y > 2030:
-					return False, ''
+					raise
 			else:
 				y = int(time.strftime('%Y', time.localtime()))
 			
 			m = int(date[-2])
 			if m < 1 or m > 12:
-				return False, ''
+				raise
 			
 			d = int(date[-1])
 			if d < 1 or d > 31:
-				return False, ''
+				raise
 			
 			return True, '%d/%d/%d' % (y, m, d)
 		except:
