@@ -97,8 +97,10 @@ def func_record(paraList):
 			wks = sht.worksheet('title', title)
 			
 			# add a new row
-			wks.add_rows(1)
-			row_index = wks.rows
+			# wks.add_rows(1)
+			# row_index = wks.rows
+			wks.insert_rows(2)
+			row_index = 3
 			
 			# date
 			cell = wks.cell('A%d' % row_index)
