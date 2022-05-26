@@ -121,6 +121,9 @@ def func_record(paraList):
 			else:
 				cell.value = ' '.join(cmd_list[3:])
 			
+			# sort by date
+			wks.sort_range("A3", "C%d" % wks.rows, sortorder='DESCENDING')
+			
 			return_msg += '勳寶幫你記帳摟\n'
 			return_msg += wks.url
 	except:
