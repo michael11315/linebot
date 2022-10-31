@@ -256,7 +256,7 @@ def _remind(cmd_list, line_bot_api, event):
 			n = int(n)
 			if unit in ['秒', '秒鐘']:
 				pass
-			elif unit == ['分', '分鐘']:
+			elif unit in ['分', '分鐘']:
 				n *= 60
 			elif unit == '小時':
 				n *= 3600
